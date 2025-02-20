@@ -51,16 +51,32 @@ class Utilisateur(models.Model):
         return Utilisateur.objects.filter(email=email, motDePasse=motDePasse).exists()
 
 class Client(models.Model):
-    nom = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
+    nom = models.CharField(max_length=100)
+    prenom = models.CharField(max_length=100)
+    email = models.EmailField()
     telephone = models.CharField(max_length=20)
+    adresse = models.TextField()
     pointsFidelite = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.prenom} {self.nom}"
+    
+    def retirerPoints(self, points):
+        self.pointsFidelite -= points
+        self.save()
+    
+    def verifierPoints(self, points):
+        return self.pointsFidelite >= points
 
     def inscription(self):
         self.save()
     
+    def modifierInformations(self):
+        self.save()
+    
     def mettreAJourInformations(self):
         self.save()
+        
     
     def ajouterPointsFidelite(self, points):
         self.pointsFidelite += points
@@ -69,16 +85,20 @@ class Client(models.Model):
 class Paiement(models.Model):
     T_MONEY = 'TMoney'
     FLOOZ = 'Flooz'
+    MODO_PAIEMENT_CHOICES = [(T_MONEY, 'TMoney'), (FLOOZ, 'Flooz')]
     STATUT_CHOICES = [('Validé', 'Validé'), ('Échoué', 'Échoué')]
     
+    def __str__(self):
+        return f"{self.montant} {self.moyenPaiement} {self.statut}"
+    
     montant = models.FloatField()
-    moyenPaiement = models.CharField(max_length=10, choices=[(T_MONEY, 'TMoney'), (FLOOZ, 'Flooz')])
+    moyenPaiement = models.CharField(max_length=10, choices=MODO_PAIEMENT_CHOICES)
     statut = models.CharField(max_length=10, choices=STATUT_CHOICES)
 
     def effectuerPaiement(self):
         self.statut = 'Validé'
         self.save()
-    
+
     def rembourserPaiement(self):
         self.statut = 'Échoué'
         self.save()
@@ -88,10 +108,27 @@ class Vente(models.Model):
     montantTotal = models.FloatField()
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     paiement = models.OneToOneField(Paiement, on_delete=models.CASCADE)
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.client} - {self.date}"
+    
+    def ajouterPaiement(self, paiement):
+        self.paiement = paiement
+        self.save()
+    
+    def retirerPaiement(self, paiement):
+        self.paiement = paiement
+        self.save()
 
     def ajouterArticle(self, produit, quantite):
         self.montantTotal += produit.prix * quantite
         self.save()
+    
+    def retirerArticle(self, produit, quantite):
+        self.montantTotal -= produit.prix * quantite
+        self.save()
+        
     
     def validerVente(self):
         self.save()
@@ -100,6 +137,9 @@ class Facture(models.Model):
     dateEmission = models.DateTimeField(auto_now_add=True)
     montant = models.FloatField()
     vente = models.OneToOneField(Vente, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.vente} - {self.dateEmission}"
     
     def genererPDF(self):
         pass  

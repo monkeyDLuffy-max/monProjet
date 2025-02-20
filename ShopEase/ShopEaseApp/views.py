@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Produit, Categorie
+from .models import Client 
 
 def index(request):
     categories = Categorie.objects.all()
@@ -34,3 +35,10 @@ def loyalty_program(request):
 
 def returns(request):
     return render(request, 'ShopEaseApp/returns.html')
+
+def clients(request):
+    clients_list = Client.objects.all()
+    context = {
+        'clients': clients_list
+    }
+    return render(request, 'ShopEaseApp/clients.html', context)

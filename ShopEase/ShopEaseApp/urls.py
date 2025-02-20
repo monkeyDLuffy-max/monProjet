@@ -14,4 +14,5 @@ urlpatterns = [
     path('loyalty/', views.loyalty_program, name='loyalty_program'),
     path('returns/', views.returns, name='returns'),
     path('add-product/', views.add_product, name='add_product'),
+    path('clients/', views.clients, name='clients'),
 ]

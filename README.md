@@ -1,2 +1,0 @@
-# monProjet
-Application Django
